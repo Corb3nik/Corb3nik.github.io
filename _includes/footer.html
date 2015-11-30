@@ -5,7 +5,7 @@
         <a href="mailto:{{ site.email }}"><span class="glyphicon glyphicon-envelope"></span> {{ site.email }}</a>
         <span class="point"> · </span>
         {% if site.github_username %}
-          
+
           <a href="https://github.com/{{ site.github_username }}">
             <span class="icon">
               <svg viewBox="0 0 16 16">
@@ -15,7 +15,7 @@
             Github
             <!-- <span>{{ site.github_username }}</span> -->
           </a>
-          
+
           {% endif %}
           <span class="point"> · </span>
           <span><a href="{{ "/feed.xml" | prepend: site.baseurl }}">RSS</a></span>
@@ -30,3 +30,13 @@
     </div>
   </div>
 </footer>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-70816642-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
