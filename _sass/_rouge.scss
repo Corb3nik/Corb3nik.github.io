@@ -5,6 +5,7 @@
 	border: 1px solid darken($body-color, 5);
 	background-color: #272822;
 	@include rounded(3px);
+  padding: 1em;
 	pre {
 		position: relative;
 		margin: 0;
