@@ -24,12 +24,12 @@ I started things off by looking for a `robots.txt` file.
 
 Going to `https://binarycloud.asis-ctf.ir/robots.txt` shows us three entries :
 
-![robots](/static/img/asis-2016/robots.png)
+![robots](/assets/img/asis-2016/robots.png)
 
 Visiting the `/cache` and `/uploads` pages show us a `forbidden` message.
 On the other hand, following the link `/debug.php` gives us a `phpinfo()` page!
 
-![phpinfo](/static/img/asis-2016/phpinfo.png)
+![phpinfo](/assets/img/asis-2016/phpinfo.png)
 
 From this page, we know that they're running PHP 7.0.4.
 
@@ -51,7 +51,7 @@ We can use [PHP wrappers](http://php.net/manual/en/wrappers.php.php) to obtain t
 
 Viewing the source of the URL above will show us the `base64` encoded source code :
 
-![base64](/static/img/asis-2016/base64.png)
+![base64](/assets/img/asis-2016/base64.png)
 
 This is a section of the extracted source code for `upload.php` :
 

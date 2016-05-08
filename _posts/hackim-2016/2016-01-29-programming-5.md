@@ -49,12 +49,12 @@ category: HackIM 2016
   <br>
   Initial setup :
 
-  ![start](/static/img/hackim-2016/start.png "start")
+  ![start](/assets/img/hackim-2016/start.png "start")
 
   <br>
   7 steps (generations) later :
 
-  ![end](/static/img/hackim-2016/end.png "end")
+  ![end](/assets/img/hackim-2016/end.png "end")
 
 
   <br>

@@ -11,7 +11,7 @@ Sniffing traffic is fun. I saw a wired shark. Isn't that strange?
 ---
 
 #### Challenge Files
-[dump.pcapng](/static/bin/internetwache-2016/shark-dump.pcapng)
+[dump.pcapng](/assets/bin/internetwache-2016/shark-dump.pcapng)
 
 ---
 
