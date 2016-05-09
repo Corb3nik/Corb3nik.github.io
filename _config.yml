@@ -9,7 +9,7 @@ words_per_minute: 200
 # Your site's domain goes here (eg: //mmistakes.github.io, http://mademistakes.com, etc)
 # When testing locally leave blank or use http://localhost:4000
 #
-#url: http://localhost:4000
+url: http://corb3nik.github.io
 
 # draw your top menu here
 # each item must have a title and a url.
@@ -30,7 +30,7 @@ owner:
   avatar:         images/avatar.png
   bio:            "
                   I'm a canadian college student and security enthusiast working on
-                  web and forensics.
+                  web and forensics challenges.
                   "
   email:          ian@subnet192.com
   # Twitter nick for use in Twitter cards and follow button.
