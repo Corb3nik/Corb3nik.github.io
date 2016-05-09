@@ -108,7 +108,7 @@ The upload module takes the query string of our POST request and uses it as the 
 
 Sending a POST request at `/upload.php?TEST` will try to upload our file in the `TEST/` folder.
 
-Since we want upload in the `cache/` folder, we need to send our POST request to `/upload.php?cache`.
+Since we want to upload in the `cache/` folder, we need to send our POST request to `/upload.php?cache`.
 The problem here is that `filter_directory` will block us from using the `cache` keyword :
 
 ``` php
@@ -136,7 +136,7 @@ As we've mentionned earlier, the challenge uses OPcache as their caching engine.
 
 Our goal is to override the cache file of either `debug.php`, `index.php` or `upload.php`, so that when we'll request those pages, the webserver will serve up our malicious cache file instead of the original content.
 
-We'll need my tools on [github](https://github.com/GoSecure/php7-opcache-override).
+We'll need my tools on [github](https://github.com/GoSecure/php7-opcache-override). We also have a full guide on how to override cache files here : http://blog.gosecure.ca/2016/04/27/binary-webshell-through-opcache-in-php-7/
 
 From the `debug.php` page, we know that it's an x86_64 platform. I deployed a 64 bit Ubuntu VM with PHP 7 installed and I generated a cache file named `debug.php.bin`.
 
