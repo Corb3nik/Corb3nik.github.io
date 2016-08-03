@@ -19,6 +19,8 @@ url: //corb3nik.github.io
 menu:
   - title: 'Home'
     url: '/'
+  - title: 'Tools'
+    url: '/tools'
   - title: 'CTFs'
     url: '/categories'
     type: 'categories'
