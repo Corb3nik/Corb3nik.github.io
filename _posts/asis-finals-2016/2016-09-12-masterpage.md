@@ -136,8 +136,7 @@ $filter = "_|information|schema|con|\_|ha|b|x|f|@|\"|`|admin|cas|txt|sleep|bench
 foreach($_POST as $_VAR){
     if(preg_match("/{$filter}/i", $_VAR) || preg_match("/{$filter}/i", $ip))
     {
-
-        exit("Blocked! with {$_VAR}");
+        exit("Blocked!");
     }
 }
 ```
@@ -150,7 +149,7 @@ Here is the final payload :
 ![payload](/assets/img/asis-finals-2016/payload.png)
 
 
-With this payload, we injection a `UNION` query that will return a row containing an
+With this payload, we inject a `UNION` query that will return a row containing an
  `id` of `admin` and a `pw` of `0`, resulting in the flag being printed on the page :
 
 ![flag](/assets/img/asis-finals-2016/flag.png)
