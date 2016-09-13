@@ -81,6 +81,10 @@ if($result['id'] === "admin" && $result['pw'] === $_POST['pw'])
 Basically, this application takes the supplied `user` and `pass` parameter as well as the hostname of your current IP address,
 filters it through `$mysql->filter()` and uses it in an SQL query.
 
+The server will spit out the flag only if the result of the query
+returns an `id` of `admin` and a `pw` supplied through the `$_POST['pw']` parameter. Keep in mind that the `$_POST['pw']` is not
+the `$_POST['pass']` parameter that we supplied initially.
+
 Here is the source code for `$mysql->filter()` :
 
 ```php
@@ -116,3 +120,38 @@ function filter($str, $type='sql'){
 }
 ...
 ```
+
+As we can see, the `pass` and `ip` fields aren't filtered as there are no `pass` and `hash` cases in the `filter()` function.
+
+```
+$id = $mysql->filter($_POST['user'], "auth");
+$pw = $mysql->filter($_POST['pass'], "pass");
+$ip = $mysql->filter($_SERVER['REMOTE_ADDR'], "hash");
+```
+
+There is also a second set of lines that filter are input :
+
+```
+$filter = "_|information|schema|con|\_|ha|b|x|f|@|\"|`|admin|cas|txt|sleep|benchmark|procedure|\^";
+foreach($_POST as $_VAR){
+    if(preg_match("/{$filter}/i", $_VAR) || preg_match("/{$filter}/i", $ip))
+    {
+
+        exit("Blocked! with {$_VAR}");
+    }
+}
+```
+
+This filter checks all parameters passed through the `POST` request and blocks the request based on the `$filter` regex.
+
+Nevertheless, we can still bypass this by using SQL string manipulation functions and obtain the flag.
+Here is the final payload :
+
+![payload](/assets/img/asis-finals-2016/payload.png)
+
+
+With this payload, we injection a `UNION` query that will return a row containing an
+ `id` of `admin` and a `pw` of `0`, resulting in the flag being printed on the page :
+
+![flag](/assets/img/asis-finals-2016/flag.png)
+
