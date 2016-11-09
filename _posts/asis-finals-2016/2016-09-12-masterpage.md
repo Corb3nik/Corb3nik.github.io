@@ -39,7 +39,7 @@ We then run the script :
 
 With the git repository at hand, we can understand how the login form works :
 
-Run `git checkout .` to retrive the `index.php` page.
+Run `git checkout .` to retrieve the `index.php` page.
 
 ```php
 <?php
