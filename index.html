@@ -34,7 +34,7 @@ comments: false
   </header>
   <div class="entry-content">
     {% if post.content contains "<!-- more -->" %}
-    {{ post.content | split:"<!-- more -->" | first % }}
+    {{ post.content | split:"<!-- more -->" | first }}
     {% else %}
       {{ post.content }}
     {% endif %}
