@@ -19,14 +19,7 @@
         {% endif %}
 
         {% if menu.type == 'categories' %}
-          <li class="header-item {{class}}"><a href="{{site.url}}{{menu.url}}"><h3>{{ menu.title }}</h3></a>
-            <ul class="header-submenu">
-              {% for item in (0..site.categories.size) %}{% unless forloop.last %}
-                {% capture this_word %}{{ cats_list[item] | strip_newlines }}{% endcapture %}
-                  <li class="sub-item"><a href="/categories/#{{this_word}}">{{this_word}}</a></li>
-              {% endunless %}{% endfor %}
-            </ul>
-          </li>
+          <li class="header-item {{class}}"><a href="{{site.url}}{{menu.url}}"><h3>{{ menu.title }}</h3></a></li>
         {% elsif menu.submenu %}
           <li class="header-item {{class}}"><a href="{{site.url}}{{menu.url}}"><h3>{{ menu.title }}</h3></a>
             <ul class="header-submenu">
