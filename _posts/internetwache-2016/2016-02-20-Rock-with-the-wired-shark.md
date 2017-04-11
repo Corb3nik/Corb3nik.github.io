@@ -1,21 +1,21 @@
 ---
 layout: post
 title: Rock with the wired shark! (misc70)
-category: internetwache 2016
+category: internetwache-2016
 ---
 
-### Description
+## Description
 
 Sniffing traffic is fun. I saw a wired shark. Isn't that strange?
 
 ---
 
-#### Challenge Files
+## Challenge Files
 [dump.pcapng](/assets/bin/internetwache-2016/shark-dump.pcapng)
 
 ---
 
-#### The Challenge
+## The Challenge
 
 We are given one pcapng file containing some HTTP requests.
 

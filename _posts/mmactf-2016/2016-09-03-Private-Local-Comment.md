@@ -1,19 +1,19 @@
 ---
 layout: post
 title: Private / Local / Comment
-category: MMA CTF 2016
+category: MMA-CTF-2016
 ---
 
-### Description
+## Description
 This is a three part challenge testing our Ruby knowledge.
 
 
-### The Challenge
+## The Challenge
 
 This challenge was split into three parts, each one harder than the last. The goal
 was to access a flag that isn't normally accessible through basic object oriented functionalities.
 
-#### Private
+## Private
 
 For each challenge, the source code was given. Here is the source code for the `Private` challenge :
 
