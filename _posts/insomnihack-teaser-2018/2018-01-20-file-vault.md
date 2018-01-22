@@ -389,6 +389,11 @@ At this point, we can locally test the behavior of each class.
 After some time, I noticed that the `ZipArchive->open` method **deletes** the target
 file if we give a `"9"` as a **second parameter** (don't ask me why...).
 
+> *EDIT:*  The second parameter of `ZipArchive->open()` is to specify additional
+> options. The value `9` is for `ZipArchive::CREATE | ZipArchive::OVERWRITE`.
+> Since ZipArchive is planning on overwriting our file, it deletes it preemptively!
+> Thanks @pagabuc for the explanation!
+
 We should now be able to use ZipArchive->open() to delete the `.htaccess` file.
 
 # Getting a shell
