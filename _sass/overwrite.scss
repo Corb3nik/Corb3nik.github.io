@@ -1,8 +1,15 @@
 .post__content img {
-  width: 100%;
-  height: auto;
+  width:  600px !important;
+  border: 2px solid black !important;
+  height: auto !important;
+  margin: 0 auto;
 }
 
-.highlight {
-  overflow: scroll;
+.wrapper {
+  max-width: 800px !important;
+}
+
+pre.highlight {
+  word-wrap: break-word !important;
+  white-space: pre-wrap !important;
 }
