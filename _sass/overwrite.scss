@@ -1,9 +1,14 @@
-.post__content img {
+.post__content img:not(.emoji) {
   width:  600px !important;
   border: 2px solid black !important;
   height: auto !important;
   display: block !important;
   margin: 0 auto !important;
+}
+
+.post__content img.emoji {
+  margin: 0 auto;
+  vertical-align: sub;
 }
 
 .wrapper {

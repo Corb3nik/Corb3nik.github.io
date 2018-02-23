@@ -24,3 +24,7 @@ kramdown:
   input: GFM
   hard_wrap: false
   syntax_highlighter: rouge
+
+# Plugins
+plugins:
+  - jemoji
