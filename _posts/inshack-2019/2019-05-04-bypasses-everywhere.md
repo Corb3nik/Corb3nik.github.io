@@ -208,7 +208,7 @@ Therefore, we need to bypass both of these restrictions if we want to leak the `
 
 ## www.google.com and JSONP
 
-[Vakzz](https://twitter.com/wcbowling), one of our teammates, found a JSONP endpoint on
+[vakzz](https://twitter.com/wcbowling), one of our teammates, found a JSONP endpoint on
 google.com allowing us to generate valid JS through the `callback` parameter :
 
 ```bash
